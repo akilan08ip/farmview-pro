@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/PageHeader";
 import { ZoneBadge } from "@/components/ZoneBadge";
+import { DroneMap } from "@/components/DroneMap";
 import { safetyZones } from "@/data/mock";
 import type { ZoneType } from "@/data/mock";
 import { toast } from "sonner";
@@ -65,6 +66,11 @@ export default function SafetyZonesPage() {
           </DialogContent>
         </Dialog>
       </PageHeader>
+
+      {/* Map showing safety zones */}
+      <div className="mb-6">
+        <DroneMap className="h-64 sm:h-80" showRoutes={false} showDrone={false} showSafetyZones />
+      </div>
 
       <Card className="card-shadow">
         <CardContent className="p-0">
