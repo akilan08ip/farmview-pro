@@ -3,12 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/StatCard";
 import { PageHeader } from "@/components/PageHeader";
+import { AlertsPieChart, MissionTypesChart, BatteryChart, MissionsChart } from "@/components/Charts";
 import { missions, alerts } from "@/data/mock";
 import { toast } from "sonner";
 
 export default function ReportsPage() {
   const completedMissions = missions.filter((m) => m.status === "Completed").length;
-  const totalAlerts = alerts.length;
   const safetyViolations = alerts.filter((a) => a.type === "Restricted Zone Entry").length;
   const routeDeviations = alerts.filter((a) => a.type === "Route Deviation").length;
 
@@ -28,6 +28,16 @@ export default function ReportsPage() {
         <StatCard title="Safety Violations" value={safetyViolations} icon={Shield} variant="destructive" />
         <StatCard title="Route Deviations" value={routeDeviations} icon={Navigation} variant="warning" />
         <StatCard title="Avg Battery Usage" value="34%" icon={Battery} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <MissionsChart />
+        <BatteryChart />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <AlertsPieChart />
+        <MissionTypesChart />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
