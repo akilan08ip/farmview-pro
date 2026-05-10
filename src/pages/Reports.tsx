@@ -1,9 +1,9 @@
-import { Download, FileText, BarChart3, Shield, Navigation, Battery } from "lucide-react";
+import { Download, FileText, BarChart3, Shield, Navigation, Battery, DollarSign } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/StatCard";
 import { PageHeader } from "@/components/PageHeader";
-import { AlertsPieChart, MissionTypesChart, BatteryChart, MissionsChart } from "@/components/Charts";
+import { AlertsPieChart, MissionTypesChart, BatteryChart, MissionsChart, MonthlyRevenueChart, DroneIncomeChart } from "@/components/Charts";
 import { missions, alerts } from "@/data/mock";
 import { toast } from "sonner";
 
