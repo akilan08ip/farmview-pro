@@ -46,6 +46,10 @@ export default function ReportsPage() {
         <MissionTypesChart />
       </div>
 
+      <div className="mb-6">
+        <DroneIncomeTable />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="card-shadow">
           <CardHeader>
