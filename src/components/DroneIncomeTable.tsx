@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -13,6 +14,9 @@ import { droneIncome } from "./Charts";
 
 const droneNames = ["AgriHawk Alpha", "SkyMapper Pro", "CropWatch Mini"] as const;
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
+
+const VALID_SORT_KEYS = new Set(["name", "total", ...months]);
+const VALID_SORT_DIRS = new Set(["asc", "desc"]);
 
 type DroneRow = {
   name: string;
@@ -35,19 +39,51 @@ function buildRows(): DroneRow[] {
 
 type SortDir = "asc" | "desc" | null;
 
+function getValidSortFromParams(searchParams: URLSearchParams): { sortKey: string | null; sortDir: SortDir } {
+  const key = searchParams.get("sort");
+  const dir = searchParams.get("dir");
+  if (key && VALID_SORT_KEYS.has(key)) {
+    return { sortKey: key, sortDir: dir && VALID_SORT_DIRS.has(dir) ? (dir as "asc" | "desc") : "desc" };
+  }
+  return { sortKey: null, sortDir: "desc" };
+}
+
 export function DroneIncomeTable() {
-  const [sortKey, setSortKey] = React.useState<string | null>(null);
-  const [sortDir, setSortDir] = React.useState<SortDir>("desc");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initial = React.useMemo(() => getValidSortFromParams(searchParams), [searchParams]);
+  const [sortKey, setSortKey] = React.useState<string | null>(initial.sortKey);
+  const [sortDir, setSortDir] = React.useState<SortDir>(initial.sortDir);
 
   const rows = React.useMemo(() => buildRows(), []);
 
+  const updateUrl = React.useCallback(
+    (key: string | null, dir: SortDir) => {
+      const next = new URLSearchParams(searchParams);
+      if (key && VALID_SORT_KEYS.has(key)) {
+        next.set("sort", key);
+        next.set("dir", dir === "asc" ? "asc" : "desc");
+      } else {
+        next.delete("sort");
+        next.delete("dir");
+      }
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+
   const handleSort = (key: string) => {
+    let nextKey: string | null;
+    let nextDir: SortDir;
     if (sortKey === key) {
-      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      nextDir = sortDir === "asc" ? "desc" : "asc";
+      nextKey = key;
     } else {
-      setSortKey(key);
-      setSortDir("desc");
+      nextKey = key;
+      nextDir = "desc";
     }
+    setSortKey(nextKey);
+    setSortDir(nextDir);
+    updateUrl(nextKey, nextDir);
   };
 
   const sortedRows = React.useMemo(() => {
