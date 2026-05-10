@@ -145,7 +145,11 @@ export function DroneMap({
 
     mapInstance.current = map;
 
+    // Ensure map renders correctly inside dialogs / animated containers
+    const t = setTimeout(() => map.invalidateSize(), 150);
+
     return () => {
+      clearTimeout(t);
       map.remove();
       mapInstance.current = null;
     };
