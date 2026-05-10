@@ -29,39 +29,46 @@ export default function SafetyZonesPage() {
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-1" /> Add Zone</Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add Safety Zone</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleAdd} className="space-y-4 mt-2">
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">Zone Name</label>
-                <Input placeholder="e.g. River Buffer Zone" />
+            <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Zone Name</label>
+                  <Input placeholder="e.g. River Buffer Zone" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Zone Type</label>
+                  <Select>
+                    <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="restricted">Restricted</SelectItem>
+                      <SelectItem value="warning">Warning</SelectItem>
+                      <SelectItem value="no-spray">No-Spray</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Field Name</label>
+                  <Input placeholder="e.g. North Wheat Field" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Coordinates / Polygon</label>
+                  <Input placeholder="Paste coordinates or draw on map" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Description</label>
+                  <Textarea placeholder="Zone description..." rows={2} />
+                </div>
+                <Button type="submit" className="w-full">Save Zone</Button>
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Zone Type</label>
-                <Select>
-                  <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="restricted">Restricted</SelectItem>
-                    <SelectItem value="warning">Warning</SelectItem>
-                    <SelectItem value="no-spray">No-Spray</SelectItem>
-                  </SelectContent>
-                </Select>
+                <label className="text-sm font-medium mb-1.5 block">Map Preview</label>
+                <DroneMap className="h-72 md:h-[420px]" showRoutes={false} showDrone={false} showSafetyZones />
+                <p className="text-xs text-muted-foreground mt-2">Existing safety zones shown for reference. Drawing tools coming soon.</p>
               </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">Field Name</label>
-                <Input placeholder="e.g. North Wheat Field" />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">Coordinates / Polygon</label>
-                <Input placeholder="Paste coordinates or draw on map" />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">Description</label>
-                <Textarea placeholder="Zone description..." rows={2} />
-              </div>
-              <Button type="submit" className="w-full">Save Zone</Button>
             </form>
           </DialogContent>
         </Dialog>
