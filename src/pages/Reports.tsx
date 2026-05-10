@@ -24,10 +24,15 @@ export default function ReportsPage() {
       </PageHeader>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard title="Missions Completed" value={completedMissions} icon={BarChart3} variant="success" />
+        <StatCard title="Total Revenue (YTD)" value="$246K" icon={DollarSign} variant="success" />
+        <StatCard title="Missions Completed" value={completedMissions} icon={BarChart3} />
         <StatCard title="Safety Violations" value={safetyViolations} icon={Shield} variant="destructive" />
         <StatCard title="Route Deviations" value={routeDeviations} icon={Navigation} variant="warning" />
-        <StatCard title="Avg Battery Usage" value="34%" icon={Battery} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <MonthlyRevenueChart />
+        <DroneIncomeChart />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
