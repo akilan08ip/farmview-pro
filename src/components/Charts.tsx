@@ -174,7 +174,7 @@ export function MonthlyRevenueChart() {
 }
 
 // Per-drone income (separate revenue contribution by drone)
-const droneIncome = [
+export const droneIncome = [
   { month: "Jan", "AgriHawk Alpha": 5200, "SkyMapper Pro": 4100, "CropWatch Mini": 3100 },
   { month: "Feb", "AgriHawk Alpha": 6400, "SkyMapper Pro": 5000, "CropWatch Mini": 3800 },
   { month: "Mar", "AgriHawk Alpha": 7800, "SkyMapper Pro": 6200, "CropWatch Mini": 4750 },

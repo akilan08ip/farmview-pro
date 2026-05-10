@@ -1,9 +1,10 @@
-import { Download, FileText, BarChart3, Shield, Navigation, Battery, DollarSign } from "lucide-react";
+import { Download, FileText, BarChart3, Shield, Navigation, DollarSign } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/StatCard";
 import { PageHeader } from "@/components/PageHeader";
 import { AlertsPieChart, MissionTypesChart, BatteryChart, MissionsChart, MonthlyRevenueChart, DroneIncomeChart } from "@/components/Charts";
+import { DroneIncomeTable } from "@/components/DroneIncomeTable";
 import { missions, alerts } from "@/data/mock";
 import { toast } from "sonner";
 
@@ -43,6 +44,10 @@ export default function ReportsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <AlertsPieChart />
         <MissionTypesChart />
+      </div>
+
+      <div className="mb-6">
+        <DroneIncomeTable />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
