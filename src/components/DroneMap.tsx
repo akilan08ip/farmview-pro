@@ -135,8 +135,9 @@ export function DroneMap({
   showRoutes = true,
   showSafetyZones = true,
   showDrone = true,
-  center = [42.038, -93.613],
-  zoom = 14,
+  center,
+  zoom,
+  region = "iowa",
 }: DroneMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -144,9 +145,14 @@ export function DroneMap({
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return;
 
+    const isIndia = region === "india";
+    const resolvedCenter: [number, number] =
+      center ?? (isIndia ? [22.9734, 78.6569] : [42.038, -93.613]);
+    const resolvedZoom = zoom ?? (isIndia ? 5 : 14);
+
     const map = L.map(mapRef.current, {
-      center,
-      zoom,
+      center: resolvedCenter,
+      zoom: resolvedZoom,
       zoomControl: true,
       attributionControl: true,
     });
@@ -156,29 +162,22 @@ export function DroneMap({
       maxZoom: 19,
     }).addTo(map);
 
-    if (showRoutes) {
-      // Planned route (dashed green)
+    if (showRoutes && !isIndia) {
       L.polyline(plannedRoute, {
-        color: "#22c55e",
-        weight: 3,
-        dashArray: "8 6",
-        opacity: 0.7,
+        color: "#22c55e", weight: 3, dashArray: "8 6", opacity: 0.7,
       }).addTo(map).bindPopup("Planned Route");
-
-      // Actual route (solid orange)
       L.polyline(actualRoute, {
-        color: "#f97316",
-        weight: 3,
-        opacity: 0.9,
+        color: "#f97316", weight: 3, opacity: 0.9,
       }).addTo(map).bindPopup("Actual Route");
     }
 
     if (showSafetyZones) {
-      safetyZonePolygons.forEach((zone) => {
+      const zones = isIndia ? indiaSafetyZones : safetyZonePolygons;
+      zones.forEach((zone) => {
         L.polygon(zone.coords, {
           color: zone.color,
           fillColor: zone.color,
-          fillOpacity: 0.15,
+          fillOpacity: 0.18,
           weight: 2,
         }).addTo(map).bindPopup(`<b>${zone.name}</b>`);
       });
