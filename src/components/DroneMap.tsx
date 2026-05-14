@@ -21,7 +21,60 @@ interface DroneMapProps {
   showDrone?: boolean;
   center?: [number, number];
   zoom?: number;
+  region?: "iowa" | "india";
 }
+
+// India farm safety zones (real coordinates near major agri belts)
+const indiaSafetyZones: { coords: [number, number][]; color: string; name: string; type: string }[] = [
+  {
+    name: "Punjab Wheat Belt — Restricted (Border Buffer)",
+    type: "restricted",
+    color: "#ef4444",
+    coords: [
+      [31.20, 75.30], [31.20, 75.55], [31.05, 75.55], [31.05, 75.30],
+    ],
+  },
+  {
+    name: "Yamuna River Buffer (Haryana)",
+    type: "restricted",
+    color: "#ef4444",
+    coords: [
+      [29.10, 77.20], [29.10, 77.40], [28.95, 77.40], [28.95, 77.20],
+    ],
+  },
+  {
+    name: "Nashik Vineyard — No Spray Zone",
+    type: "no-spray",
+    color: "#3b82f6",
+    coords: [
+      [20.00, 73.75], [20.00, 73.95], [19.85, 73.95], [19.85, 73.75],
+    ],
+  },
+  {
+    name: "Thanjavur Paddy Fields — Warning",
+    type: "warning",
+    color: "#f59e0b",
+    coords: [
+      [10.80, 79.10], [10.80, 79.30], [10.65, 79.30], [10.65, 79.10],
+    ],
+  },
+  {
+    name: "Coorg Coffee Estate — Organic",
+    type: "no-spray",
+    color: "#3b82f6",
+    coords: [
+      [12.45, 75.70], [12.45, 75.85], [12.30, 75.85], [12.30, 75.70],
+    ],
+  },
+  {
+    name: "Nagpur Orange Orchard — Restricted",
+    type: "restricted",
+    color: "#ef4444",
+    coords: [
+      [21.20, 78.95], [21.20, 79.15], [21.05, 79.15], [21.05, 78.95],
+    ],
+  },
+];
 
 // Mock route coordinates (farm area near Iowa)
 const plannedRoute: [number, number][] = [
