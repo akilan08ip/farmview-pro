@@ -183,7 +183,7 @@ export function DroneMap({
       });
     }
 
-    if (showDrone) {
+    if (showDrone && !isIndia) {
       const droneIcon = L.divIcon({
         html: `<div style="background:#22c55e;width:14px;height:14px;border-radius:50%;border:3px solid white;box-shadow:0 0 8px rgba(34,197,94,0.6);"></div>`,
         className: "",
