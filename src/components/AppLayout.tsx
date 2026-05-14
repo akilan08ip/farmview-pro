@@ -1,7 +1,7 @@
 import { useState, createContext, useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Plane, Radio, Shield, ClipboardList, BarChart3, Settings, ChevronLeft, ChevronRight, Sprout, LogOut, Menu, X
+  LayoutDashboard, Plane, Radio, Shield, ClipboardList, BarChart3, Settings, ChevronLeft, ChevronRight, Sprout, LogOut, Menu, X, CalendarClock
 } from "lucide-react";
 
 const navItems = [
@@ -9,6 +9,7 @@ const navItems = [
   { title: "Mission Planning", path: "/missions/new", icon: Plane },
   { title: "Live Monitoring", path: "/monitoring", icon: Radio },
   { title: "Safety Zones", path: "/safety-zones", icon: Shield },
+  { title: "Bookings", path: "/bookings", icon: CalendarClock },
   { title: "Mission Logs", path: "/logs", icon: ClipboardList },
   { title: "Reports", path: "/reports", icon: BarChart3 },
   { title: "Settings", path: "/settings", icon: Settings },
