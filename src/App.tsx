@@ -11,6 +11,7 @@ import LiveMonitoringPage from "./pages/LiveMonitoring";
 import SafetyZonesPage from "./pages/SafetyZones";
 import MissionLogsPage from "./pages/MissionLogs";
 import ReportsPage from "./pages/Reports";
+import BookingsPage from "./pages/Bookings";
 import SettingsPage from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/safety-zones" element={<DashboardLayout><SafetyZonesPage /></DashboardLayout>} />
           <Route path="/logs" element={<DashboardLayout><MissionLogsPage /></DashboardLayout>} />
           <Route path="/reports" element={<DashboardLayout><ReportsPage /></DashboardLayout>} />
+          <Route path="/bookings" element={<DashboardLayout><BookingsPage /></DashboardLayout>} />
           <Route path="/settings" element={<DashboardLayout><SettingsPage /></DashboardLayout>} />
           <Route path="*" element={<NotFound />} />
         </Routes>

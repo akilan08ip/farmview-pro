@@ -21,7 +21,60 @@ interface DroneMapProps {
   showDrone?: boolean;
   center?: [number, number];
   zoom?: number;
+  region?: "iowa" | "india";
 }
+
+// India farm safety zones (real coordinates near major agri belts)
+const indiaSafetyZones: { coords: [number, number][]; color: string; name: string; type: string }[] = [
+  {
+    name: "Punjab Wheat Belt — Restricted (Border Buffer)",
+    type: "restricted",
+    color: "#ef4444",
+    coords: [
+      [31.20, 75.30], [31.20, 75.55], [31.05, 75.55], [31.05, 75.30],
+    ],
+  },
+  {
+    name: "Yamuna River Buffer (Haryana)",
+    type: "restricted",
+    color: "#ef4444",
+    coords: [
+      [29.10, 77.20], [29.10, 77.40], [28.95, 77.40], [28.95, 77.20],
+    ],
+  },
+  {
+    name: "Nashik Vineyard — No Spray Zone",
+    type: "no-spray",
+    color: "#3b82f6",
+    coords: [
+      [20.00, 73.75], [20.00, 73.95], [19.85, 73.95], [19.85, 73.75],
+    ],
+  },
+  {
+    name: "Thanjavur Paddy Fields — Warning",
+    type: "warning",
+    color: "#f59e0b",
+    coords: [
+      [10.80, 79.10], [10.80, 79.30], [10.65, 79.30], [10.65, 79.10],
+    ],
+  },
+  {
+    name: "Coorg Coffee Estate — Organic",
+    type: "no-spray",
+    color: "#3b82f6",
+    coords: [
+      [12.45, 75.70], [12.45, 75.85], [12.30, 75.85], [12.30, 75.70],
+    ],
+  },
+  {
+    name: "Nagpur Orange Orchard — Restricted",
+    type: "restricted",
+    color: "#ef4444",
+    coords: [
+      [21.20, 78.95], [21.20, 79.15], [21.05, 79.15], [21.05, 78.95],
+    ],
+  },
+];
 
 // Mock route coordinates (farm area near Iowa)
 const plannedRoute: [number, number][] = [
@@ -82,8 +135,9 @@ export function DroneMap({
   showRoutes = true,
   showSafetyZones = true,
   showDrone = true,
-  center = [42.038, -93.613],
-  zoom = 14,
+  center,
+  zoom,
+  region = "iowa",
 }: DroneMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -91,9 +145,14 @@ export function DroneMap({
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return;
 
+    const isIndia = region === "india";
+    const resolvedCenter: [number, number] =
+      center ?? (isIndia ? [22.9734, 78.6569] : [42.038, -93.613]);
+    const resolvedZoom = zoom ?? (isIndia ? 5 : 14);
+
     const map = L.map(mapRef.current, {
-      center,
-      zoom,
+      center: resolvedCenter,
+      zoom: resolvedZoom,
       zoomControl: true,
       attributionControl: true,
     });
@@ -103,35 +162,28 @@ export function DroneMap({
       maxZoom: 19,
     }).addTo(map);
 
-    if (showRoutes) {
-      // Planned route (dashed green)
+    if (showRoutes && !isIndia) {
       L.polyline(plannedRoute, {
-        color: "#22c55e",
-        weight: 3,
-        dashArray: "8 6",
-        opacity: 0.7,
+        color: "#22c55e", weight: 3, dashArray: "8 6", opacity: 0.7,
       }).addTo(map).bindPopup("Planned Route");
-
-      // Actual route (solid orange)
       L.polyline(actualRoute, {
-        color: "#f97316",
-        weight: 3,
-        opacity: 0.9,
+        color: "#f97316", weight: 3, opacity: 0.9,
       }).addTo(map).bindPopup("Actual Route");
     }
 
     if (showSafetyZones) {
-      safetyZonePolygons.forEach((zone) => {
+      const zones = isIndia ? indiaSafetyZones : safetyZonePolygons;
+      zones.forEach((zone) => {
         L.polygon(zone.coords, {
           color: zone.color,
           fillColor: zone.color,
-          fillOpacity: 0.15,
+          fillOpacity: 0.18,
           weight: 2,
         }).addTo(map).bindPopup(`<b>${zone.name}</b>`);
       });
     }
 
-    if (showDrone) {
+    if (showDrone && !isIndia) {
       const droneIcon = L.divIcon({
         html: `<div style="background:#22c55e;width:14px;height:14px;border-radius:50%;border:3px solid white;box-shadow:0 0 8px rgba(34,197,94,0.6);"></div>`,
         className: "",
