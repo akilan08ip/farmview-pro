@@ -65,18 +65,18 @@ export default function SafetyZonesPage() {
                 <Button type="submit" className="w-full">Save Zone</Button>
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Map Preview</label>
-                <DroneMap className="h-72 md:h-[420px]" showRoutes={false} showDrone={false} showSafetyZones />
-                <p className="text-xs text-muted-foreground mt-2">Existing safety zones shown for reference. Drawing tools coming soon.</p>
+                <label className="text-sm font-medium mb-1.5 block">Map Preview (India)</label>
+                <DroneMap className="h-72 md:h-[420px]" showRoutes={false} showDrone={false} showSafetyZones region="india" />
+                <p className="text-xs text-muted-foreground mt-2">Existing India safety zones shown for reference. Drawing tools coming soon.</p>
               </div>
             </form>
           </DialogContent>
         </Dialog>
       </PageHeader>
 
-      {/* Map showing safety zones */}
+      {/* Map showing India safety zones */}
       <div className="mb-6">
-        <DroneMap className="h-64 sm:h-80" showRoutes={false} showDrone={false} showSafetyZones />
+        <DroneMap className="h-64 sm:h-96" showRoutes={false} showDrone={false} showSafetyZones region="india" />
       </div>
 
       <Card className="card-shadow">
