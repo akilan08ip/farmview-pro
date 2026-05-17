@@ -28,7 +28,7 @@ export default function LiveMonitoringPage() {
           <DroneMap className="h-72 sm:h-96" showRoutes showSafetyZones showDrone />
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <TelemetryCard label="Battery" value={telemetry.battery} unit="%" icon={Battery} status={telemetry.battery < 30 ? "critical" : telemetry.battery < 50 ? "warning" : "normal"} />
+            <TelemetryCard label="Battery" value={telemetry.battery} unit="%" icon={Battery} status={batteryStatus} />
             <TelemetryCard label="Altitude" value={telemetry.altitude} unit="m" icon={Gauge} />
             <TelemetryCard label="Speed" value={telemetry.speed} unit="m/s" icon={Navigation} />
             <TelemetryCard label="GPS" value={telemetry.gpsStatus} icon={Satellite} />
