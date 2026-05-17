@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Bell, Calendar as CalendarIcon, Clock, Trash2, CheckCircle2 } from "lucide-react";
+import { Plus, Bell, Calendar as CalendarIcon, Clock, Trash2, CheckCircle2, Pencil } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/PageHeader";
 import { drones } from "@/data/mock";
@@ -63,11 +64,41 @@ function loadLS<T>(key: string, fallback: T): T {
   catch { return fallback; }
 }
 
+function slotTimes(date: string, slot: string): { start: number; end: number } {
+  const [s, e] = slot.split(" - ");
+  return {
+    start: new Date(`${date}T${s}:00`).getTime(),
+    end: new Date(`${date}T${e}:00`).getTime(),
+  };
+}
+
+type Status = "upcoming" | "in-progress" | "completed";
+
+function bookingStatus(date: string, slot: string, now: number): { status: Status; progress: number; remainingLabel: string } {
+  const { start, end } = slotTimes(date, slot);
+  if (now < start) {
+    const mins = Math.round((start - now) / 60000);
+    return { status: "upcoming", progress: 0, remainingLabel: mins < 60 ? `Starts in ${mins}m` : mins < 1440 ? `Starts in ${Math.round(mins / 60)}h` : `Starts in ${Math.round(mins / 1440)}d` };
+  }
+  if (now >= end) return { status: "completed", progress: 100, remainingLabel: "Completed" };
+  const pct = Math.round(((now - start) / (end - start)) * 100);
+  const remain = Math.round((end - now) / 60000);
+  return { status: "in-progress", progress: pct, remainingLabel: `${remain}m remaining` };
+}
+
+const STATUS_BADGE: Record<Status, { label: string; cls: string }> = {
+  upcoming: { label: "Upcoming", cls: "bg-muted text-muted-foreground" },
+  "in-progress": { label: "In Progress", cls: "bg-primary/15 text-primary" },
+  completed: { label: "Completed", cls: "bg-success/15 text-success" },
+};
+
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>(() => loadLS(BOOKINGS_KEY, seedBookings()));
   const [reminders, setReminders] = useState<Reminder[]>(() => loadLS(REMINDERS_KEY, seedReminders()));
   const [bookingOpen, setBookingOpen] = useState(false);
   const [reminderOpen, setReminderOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   // form state
   const [bDrone, setBDrone] = useState(drones[0].id);
@@ -85,12 +116,18 @@ export default function BookingsPage() {
   useEffect(() => { localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings)); }, [bookings]);
   useEffect(() => { localStorage.setItem(REMINDERS_KEY, JSON.stringify(reminders)); }, [reminders]);
 
+  // Tick every 30s to update progress bars / status
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
   // Notify when reminders are due
   useEffect(() => {
     const tick = setInterval(() => {
-      const now = Date.now();
+      const t = Date.now();
       reminders.forEach((r) => {
-        if (!r.done && new Date(r.due).getTime() <= now && new Date(r.due).getTime() > now - 60_000) {
+        if (!r.done && new Date(r.due).getTime() <= t && new Date(r.due).getTime() > t - 60_000) {
           toast(`🔔 Reminder: ${r.title}`);
         }
       });
@@ -106,15 +143,36 @@ export default function BookingsPage() {
     return map;
   }, [bookings]);
 
-  const handleAddBooking = (e: React.FormEvent) => {
+  const resetBookingForm = () => {
+    setBDrone(drones[0].id); setBDate(todayISO()); setBSlot(SLOTS[0]);
+    setBField(""); setBOperator(""); setBNotes(""); setEditingId(null);
+  };
+
+  const openNewBooking = () => { resetBookingForm(); setBookingOpen(true); };
+
+  const openEditBooking = (b: Booking) => {
+    setEditingId(b.id);
+    setBDrone(b.droneId); setBDate(b.date); setBSlot(b.slot);
+    setBField(b.field === "—" ? "" : b.field);
+    setBOperator(b.operator === "—" ? "" : b.operator);
+    setBNotes(b.notes || "");
+    setBookingOpen(true);
+  };
+
+  const handleSubmitBooking = (e: React.FormEvent) => {
     e.preventDefault();
     const drone = drones.find(d => d.id === bDrone)!;
-    const conflict = bookings.find(b => b.droneId === bDrone && b.date === bDate && b.slot === bSlot);
+    const conflict = bookings.find(b => b.id !== editingId && b.droneId === bDrone && b.date === bDate && b.slot === bSlot);
     if (conflict) { toast.error("That slot is already booked for this drone."); return; }
-    const id = `BK-${String(bookings.length + 1).padStart(3, "0")}`;
-    setBookings([...bookings, { id, droneId: bDrone, droneName: drone.name, date: bDate, slot: bSlot, field: bField || "—", operator: bOperator || "—", notes: bNotes }]);
-    toast.success(`Booked ${drone.name} on ${bDate} (${bSlot})`);
-    setBField(""); setBOperator(""); setBNotes("");
+    if (editingId) {
+      setBookings(bookings.map(b => b.id === editingId ? { ...b, droneId: bDrone, droneName: drone.name, date: bDate, slot: bSlot, field: bField || "—", operator: bOperator || "—", notes: bNotes } : b));
+      toast.success(`Updated booking ${editingId}`);
+    } else {
+      const id = `BK-${String(bookings.length + 1).padStart(3, "0")}`;
+      setBookings([...bookings, { id, droneId: bDrone, droneName: drone.name, date: bDate, slot: bSlot, field: bField || "—", operator: bOperator || "—", notes: bNotes }]);
+      toast.success(`Booked ${drone.name} on ${bDate} (${bSlot})`);
+    }
+    resetBookingForm();
     setBookingOpen(false);
   };
 
@@ -129,7 +187,10 @@ export default function BookingsPage() {
     setReminderOpen(false);
   };
 
-  const removeBooking = (id: string) => setBookings(bookings.filter(b => b.id !== id));
+  const cancelBooking = (id: string) => {
+    setBookings(bookings.filter(b => b.id !== id));
+    toast.success(`Cancelled booking ${id}`);
+  };
   const toggleReminder = (id: string) => setReminders(reminders.map(r => r.id === id ? { ...r, done: !r.done } : r));
   const removeReminder = (id: string) => setReminders(reminders.filter(r => r.id !== id));
 
@@ -174,13 +235,13 @@ export default function BookingsPage() {
           </DialogContent>
         </Dialog>
 
-        <Dialog open={bookingOpen} onOpenChange={setBookingOpen}>
+        <Dialog open={bookingOpen} onOpenChange={(v) => { setBookingOpen(v); if (!v) resetBookingForm(); }}>
           <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-1" /> Book Slot</Button>
+            <Button onClick={openNewBooking}><Plus className="h-4 w-4 mr-1" /> Book Slot</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Book Drone Slot</DialogTitle></DialogHeader>
-            <form onSubmit={handleAddBooking} className="space-y-4 mt-2">
+            <DialogHeader><DialogTitle>{editingId ? `Edit Booking ${editingId}` : "Book Drone Slot"}</DialogTitle></DialogHeader>
+            <form onSubmit={handleSubmitBooking} className="space-y-4 mt-2">
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Drone</label>
                 <Select value={bDrone} onValueChange={setBDrone}>
@@ -201,7 +262,7 @@ export default function BookingsPage() {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {SLOTS.map(s => {
-                        const taken = bookings.some(b => b.droneId === bDrone && b.date === bDate && b.slot === s);
+                        const taken = bookings.some(b => b.id !== editingId && b.droneId === bDrone && b.date === bDate && b.slot === s);
                         return <SelectItem key={s} value={s} disabled={taken}>{s}{taken ? " (booked)" : ""}</SelectItem>;
                       })}
                     </SelectContent>
@@ -220,7 +281,12 @@ export default function BookingsPage() {
                 <label className="text-sm font-medium mb-1.5 block">Notes</label>
                 <Textarea rows={2} value={bNotes} onChange={e => setBNotes(e.target.value)} />
               </div>
-              <Button type="submit" className="w-full">Confirm Booking</Button>
+              <div className="flex gap-2">
+                {editingId && (
+                  <Button type="button" variant="outline" className="flex-1" onClick={() => { resetBookingForm(); setBookingOpen(false); }}>Close</Button>
+                )}
+                <Button type="submit" className="flex-1">{editingId ? "Save Changes" : "Confirm Booking"}</Button>
+              </div>
             </form>
           </DialogContent>
         </Dialog>
@@ -241,23 +307,39 @@ export default function BookingsPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {list.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">No bookings yet.</p>}
-                {list.map((b) => (
-                  <div key={b.id} className="flex items-start justify-between gap-2 rounded-md border border-border p-3 hover:bg-muted/30">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 text-sm font-medium">
-                        <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                        {b.date}
-                        <Clock className="h-3.5 w-3.5 text-muted-foreground ml-2" />
-                        {b.slot}
+                {list.map((b) => {
+                  const s = bookingStatus(b.date, b.slot, now);
+                  const badge = STATUS_BADGE[s.status];
+                  return (
+                    <div key={b.id} className="rounded-md border border-border p-3 hover:bg-muted/30 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 text-sm font-medium flex-wrap">
+                            <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                            {b.date}
+                            <Clock className="h-3.5 w-3.5 text-muted-foreground ml-1" />
+                            {b.slot}
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded ${badge.cls}`}>{badge.label}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1 truncate">{b.field} • {b.operator}</p>
+                          {b.notes && <p className="text-xs text-muted-foreground mt-0.5 truncate">{b.notes}</p>}
+                        </div>
+                        <div className="flex shrink-0">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditBooking(b)} title="Edit">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => cancelBooking(b.id)} title="Cancel">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1 truncate">{b.field} • {b.operator}</p>
-                      {b.notes && <p className="text-xs text-muted-foreground mt-0.5 truncate">{b.notes}</p>}
+                      <div className="space-y-1">
+                        <Progress value={s.progress} className="h-1.5" />
+                        <p className="text-[11px] text-muted-foreground">{s.remainingLabel}</p>
+                      </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeBooking(b.id)}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                ))}
+                  );
+                })}
               </CardContent>
             </Card>
           );
