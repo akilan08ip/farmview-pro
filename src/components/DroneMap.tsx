@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -130,7 +130,7 @@ const safetyZonePolygons: { coords: [number, number][]; color: string; name: str
   },
 ];
 
-export function DroneMap({
+function DroneMapImpl({
   className = "",
   showRoutes = true,
   showSafetyZones = true,
@@ -155,19 +155,31 @@ export function DroneMap({
       zoom: resolvedZoom,
       zoomControl: true,
       attributionControl: true,
+      preferCanvas: true, // canvas renderer: faster for polygons/polylines
+      zoomAnimation: true,
+      fadeAnimation: false,
+      markerZoomAnimation: false,
+      wheelDebounceTime: 40,
+      wheelPxPerZoomLevel: 80,
     });
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       maxZoom: 19,
+      updateWhenIdle: true,
+      updateWhenZooming: false,
+      keepBuffer: 2,
+      crossOrigin: true,
     }).addTo(map);
+
+    const renderer = L.canvas({ padding: 0.5 });
 
     if (showRoutes && !isIndia) {
       L.polyline(plannedRoute, {
-        color: "#22c55e", weight: 3, dashArray: "8 6", opacity: 0.7,
+        color: "#22c55e", weight: 3, dashArray: "8 6", opacity: 0.7, renderer,
       }).addTo(map).bindPopup("Planned Route");
       L.polyline(actualRoute, {
-        color: "#f97316", weight: 3, opacity: 0.9,
+        color: "#f97316", weight: 3, opacity: 0.9, renderer,
       }).addTo(map).bindPopup("Actual Route");
     }
 
@@ -179,6 +191,7 @@ export function DroneMap({
           fillColor: zone.color,
           fillOpacity: 0.18,
           weight: 2,
+          renderer,
         }).addTo(map).bindPopup(`<b>${zone.name}</b>`);
       });
     }
@@ -200,12 +213,25 @@ export function DroneMap({
     // Ensure map renders correctly inside dialogs / animated containers
     const t = setTimeout(() => map.invalidateSize(), 150);
 
+    // Throttled resize handling instead of leaflet's default per-frame work
+    let resizeRaf = 0;
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(resizeRaf);
+      resizeRaf = requestAnimationFrame(() => map.invalidateSize());
+    });
+    ro.observe(mapRef.current);
+
     return () => {
       clearTimeout(t);
+      cancelAnimationFrame(resizeRaf);
+      ro.disconnect();
       map.remove();
       mapInstance.current = null;
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [region]);
 
   return <div ref={mapRef} className={`rounded-lg overflow-hidden border border-border ${className}`} />;
 }
+
+export const DroneMap = memo(DroneMapImpl);
