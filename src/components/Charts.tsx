@@ -253,9 +253,9 @@ export function TelemetryHistoryChart() {
             <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
             <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
             <Legend />
-            <Area type="monotone" dataKey="battery" stroke="hsl(152, 55%, 33%)" fill="hsl(152, 55%, 33%)" fillOpacity={0.1} name="Battery %" />
-            <Area type="monotone" dataKey="altitude" stroke="hsl(200, 70%, 50%)" fill="hsl(200, 70%, 50%)" fillOpacity={0.1} name="Altitude (m)" />
-            <Area type="monotone" dataKey="speed" stroke="hsl(38, 92%, 50%)" fill="hsl(38, 92%, 50%)" fillOpacity={0.1} name="Speed (m/s)" />
+            <Area type="monotone" dataKey="battery" stroke="hsl(152, 55%, 33%)" fill="hsl(152, 55%, 33%)" fillOpacity={0.1} name="Battery %" isAnimationActive={false} />
+            <Area type="monotone" dataKey="altitude" stroke="hsl(200, 70%, 50%)" fill="hsl(200, 70%, 50%)" fillOpacity={0.1} name="Altitude (m)" isAnimationActive={false} />
+            <Area type="monotone" dataKey="speed" stroke="hsl(38, 92%, 50%)" fill="hsl(38, 92%, 50%)" fillOpacity={0.1} name="Speed (m/s)" isAnimationActive={false} />
           </AreaChart>
         </ResponsiveContainer>
       </CardContent>
