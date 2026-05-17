@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Battery, Gauge, Navigation, Satellite, Clock, Signal, Pause } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { missions, alerts, telemetry } from "@/data/mock";
 
 export default function LiveMonitoringPage() {
-  const activeMission = missions.find((m) => m.status === "Active") || missions[0];
+  const activeMission = useMemo(() => missions.find((m) => m.status === "Active") || missions[0], []);
+  const batteryStatus = telemetry.battery < 30 ? "critical" : telemetry.battery < 50 ? "warning" : "normal";
 
   return (
     <div>
