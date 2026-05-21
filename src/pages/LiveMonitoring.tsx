@@ -84,15 +84,41 @@ export default function LiveMonitoringPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
-          <DroneMap
-            className="h-72 sm:h-96"
-            region="india"
-            showRoutes={false}
-            showSafetyZones
-            showDrone={false}
-            drones={drones.map((d) => ({ id: d.id, name: d.name, position: d.position, battery: d.battery, altitude: d.altitude }))}
-            focusDroneId={selectedDroneId}
-          />
+          <div className="relative">
+            <DroneMap
+              className="h-72 sm:h-96"
+              region="india"
+              showRoutes={false}
+              showSafetyZones
+              showDrone={false}
+              drones={drones.map((d) => ({ id: d.id, name: d.name, position: d.position, battery: d.battery, altitude: d.altitude }))}
+              focusDroneId={selectedDroneId}
+              onDroneClick={setSelectedDroneId}
+            />
+            {/* Floating live-status panel for the clicked drone */}
+            <div className="absolute top-3 right-3 z-[1000] w-60 rounded-lg border border-border bg-card/95 backdrop-blur p-3 card-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-semibold truncate">{selectedDrone.name}</p>
+                <span className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                  selectedDrone.status === "in-mission" ? "bg-success/15 text-success" :
+                  selectedDrone.status === "online" ? "bg-primary/15 text-primary" :
+                  "bg-muted text-muted-foreground"
+                }`}>{selectedDrone.status}</span>
+              </div>
+              <dl className="grid grid-cols-2 gap-y-1 text-xs">
+                <dt className="text-muted-foreground">Battery</dt>
+                <dd className={`text-right font-mono ${batteryStatus === "critical" ? "text-destructive" : batteryStatus === "warning" ? "text-warning" : "text-success"}`}>{t.battery}%</dd>
+                <dt className="text-muted-foreground">Altitude</dt>
+                <dd className="text-right font-mono">{t.altitude} m</dd>
+                <dt className="text-muted-foreground">Signal</dt>
+                <dd className="text-right font-mono">{t.signalStrength}%</dd>
+                <dt className="text-muted-foreground">GPS</dt>
+                <dd className="text-right font-mono">{t.gpsStatus}</dd>
+                <dt className="text-muted-foreground">Position</dt>
+                <dd className="text-right font-mono text-[10px]">{selectedDrone.position[0].toFixed(3)}, {selectedDrone.position[1].toFixed(3)}</dd>
+              </dl>
+            </div>
+          </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <TelemetryCard label="Battery" value={t.battery} unit="%" icon={Battery} status={batteryStatus} />
