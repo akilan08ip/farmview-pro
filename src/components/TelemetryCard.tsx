@@ -34,11 +34,11 @@ function TelemetryCardImpl({ label, value, unit, icon: Icon, status = "normal" }
       className={`bg-card rounded-lg p-3 card-shadow ring-1 ${s.ring} transition-colors hover:bg-muted/30 contain-layout`}
       style={{ contain: "layout paint" }}
     >
-      <div className="flex items-center gap-2 mb-2">
-        <span className={`inline-flex h-6 w-6 items-center justify-center rounded-md ${s.iconBg}`}>
+      <div className="flex items-center gap-2 mb-2 min-w-0">
+        <span className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${s.iconBg}`}>
           <Icon className={`h-3.5 w-3.5 ${s.text}`} />
         </span>
-        <span className="text-[10px] text-muted-foreground uppercase tracking-wider truncate">{label}</span>
+        <span className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight break-words">{label}</span>
       </div>
       <p className={`text-xl font-bold font-heading leading-none ${s.text}`}>
         {value}
