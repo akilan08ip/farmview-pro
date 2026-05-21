@@ -30,6 +30,8 @@ export interface Drone {
   battery: number;
   status: "online" | "offline" | "in-mission";
   lastSeen: string;
+  position: [number, number]; // [lat, lng]
+  altitude: number; // meters
 }
 
 export interface Alert {
@@ -62,9 +64,9 @@ export const missions: Mission[] = [
 ];
 
 export const drones: Drone[] = [
-  { id: "DRN-01", name: "AgriHawk Alpha", model: "DJI Agras T40", battery: 78, status: "in-mission", lastSeen: "2026-04-11T10:30:00" },
-  { id: "DRN-02", name: "SkyMapper Pro", model: "DJI Matrice 350", battery: 45, status: "in-mission", lastSeen: "2026-04-11T10:28:00" },
-  { id: "DRN-03", name: "CropWatch Mini", model: "DJI Mini 4 Pro", battery: 92, status: "online", lastSeen: "2026-04-11T10:25:00" },
+  { id: "DRN-01", name: "AgriHawk Alpha", model: "DJI Agras T40", battery: 78, status: "in-mission", lastSeen: "2026-04-11T10:30:00", position: [31.1471, 75.3412], altitude: 45 },
+  { id: "DRN-02", name: "SkyMapper Pro", model: "DJI Matrice 350", battery: 45, status: "in-mission", lastSeen: "2026-04-11T10:28:00", position: [19.9975, 73.7898], altitude: 62 },
+  { id: "DRN-03", name: "CropWatch Mini", model: "DJI Mini 4 Pro", battery: 92, status: "online", lastSeen: "2026-04-11T10:25:00", position: [12.9141, 75.7397], altitude: 0 },
 ];
 
 export const alerts: Alert[] = [
