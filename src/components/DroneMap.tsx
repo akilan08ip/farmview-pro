@@ -32,6 +32,25 @@ interface DroneMapProps {
   region?: "iowa" | "india";
   drones?: DroneMarker[];
   focusDroneId?: string;
+  onDroneClick?: (id: string) => void;
+}
+
+// Offset markers that share (almost) the same coordinate so they don't overlap visually
+function dedupePositions(list: DroneMarker[]): DroneMarker[] {
+  const seen = new Map<string, number>();
+  return list.map((d) => {
+    const key = `${d.position[0].toFixed(4)},${d.position[1].toFixed(4)}`;
+    const n = seen.get(key) ?? 0;
+    seen.set(key, n + 1);
+    if (n === 0) return d;
+    // ~10m per 0.0001 degree — spread overlapping drones in a small ring
+    const angle = (n * 2 * Math.PI) / 6;
+    const r = 0.0005 * Math.ceil(n / 6);
+    return {
+      ...d,
+      position: [d.position[0] + Math.cos(angle) * r, d.position[1] + Math.sin(angle) * r],
+    };
+  });
 }
 
 // India farm safety zones (real coordinates near major agri belts)
