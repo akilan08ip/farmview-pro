@@ -282,7 +282,4 @@ function DroneMapImpl({
   return <div ref={mapRef} className={`rounded-lg overflow-hidden border border-border ${className}`} />;
 }
 
-  return <div ref={mapRef} className={`rounded-lg overflow-hidden border border-border ${className}`} />;
-}
-
 export const DroneMap = memo(DroneMapImpl);
