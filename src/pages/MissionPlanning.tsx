@@ -77,6 +77,20 @@ export default function MissionPlanningPage() {
                 <label className="text-sm font-medium mb-1.5 block">Planned Spray Area</label>
                 <Input placeholder="e.g. 12 hectares" />
               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Latitude</label>
+                  <Input type="number" step="0.0001" placeholder="e.g. 31.1471" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Longitude</label>
+                  <Input type="number" step="0.0001" placeholder="e.g. 75.3412" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Altitude (m)</label>
+                  <Input type="number" step="1" placeholder="e.g. 45" />
+                </div>
+              </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Notes</label>
                 <Textarea placeholder="Additional notes..." rows={3} />

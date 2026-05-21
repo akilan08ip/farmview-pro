@@ -14,6 +14,14 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+interface DroneMarker {
+  id: string;
+  name: string;
+  position: [number, number];
+  battery?: number;
+  altitude?: number;
+}
+
 interface DroneMapProps {
   className?: string;
   showRoutes?: boolean;
@@ -22,6 +30,8 @@ interface DroneMapProps {
   center?: [number, number];
   zoom?: number;
   region?: "iowa" | "india";
+  drones?: DroneMarker[];
+  focusDroneId?: string;
 }
 
 // India farm safety zones (real coordinates near major agri belts)
@@ -138,14 +148,17 @@ function DroneMapImpl({
   center,
   zoom,
   region = "iowa",
+  drones,
+  focusDroneId,
 }: DroneMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
+  const droneLayer = useRef<L.LayerGroup | null>(null);
 
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return;
 
-    const isIndia = region === "india";
+    const isIndia = region === "india" || (drones && drones.length > 0);
     const resolvedCenter: [number, number] =
       center ?? (isIndia ? [22.9734, 78.6569] : [42.038, -93.613]);
     const resolvedZoom = zoom ?? (isIndia ? 5 : 14);
@@ -155,7 +168,7 @@ function DroneMapImpl({
       zoom: resolvedZoom,
       zoomControl: true,
       attributionControl: true,
-      preferCanvas: true, // canvas renderer: faster for polygons/polylines
+      preferCanvas: true,
       zoomAnimation: true,
       fadeAnimation: false,
       markerZoomAnimation: false,
@@ -184,7 +197,7 @@ function DroneMapImpl({
     }
 
     if (showSafetyZones) {
-      const zones = isIndia ? indiaSafetyZones : safetyZonePolygons;
+      const zones = region === "india" || (drones && drones.length > 0) ? indiaSafetyZones : safetyZonePolygons;
       zones.forEach((zone) => {
         L.polygon(zone.coords, {
           color: zone.color,
@@ -196,7 +209,8 @@ function DroneMapImpl({
       });
     }
 
-    if (showDrone && !isIndia) {
+    // Single legacy drone (Iowa demo) — only when no drones list provided
+    if (showDrone && !drones && region !== "india") {
       const droneIcon = L.divIcon({
         html: `<div style="background:#22c55e;width:14px;height:14px;border-radius:50%;border:3px solid white;box-shadow:0 0 8px rgba(34,197,94,0.6);"></div>`,
         className: "",
@@ -208,12 +222,10 @@ function DroneMapImpl({
         .bindPopup("<b>AgriHawk Alpha</b><br/>Battery: 78%<br/>Alt: 45m");
     }
 
+    droneLayer.current = L.layerGroup().addTo(map);
     mapInstance.current = map;
 
-    // Ensure map renders correctly inside dialogs / animated containers
     const t = setTimeout(() => map.invalidateSize(), 150);
-
-    // Throttled resize handling instead of leaflet's default per-frame work
     let resizeRaf = 0;
     const ro = new ResizeObserver(() => {
       cancelAnimationFrame(resizeRaf);
@@ -227,9 +239,45 @@ function DroneMapImpl({
       ro.disconnect();
       map.remove();
       mapInstance.current = null;
+      droneLayer.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [region]);
+
+  // Update drone markers when list or focus changes
+  useEffect(() => {
+    const map = mapInstance.current;
+    const layer = droneLayer.current;
+    if (!map || !layer || !drones) return;
+
+    layer.clearLayers();
+    drones.forEach((d) => {
+      const isFocus = d.id === focusDroneId;
+      const color = isFocus ? "#16a34a" : "#64748b";
+      const size = isFocus ? 18 : 12;
+      const icon = L.divIcon({
+        html: `<div style="background:${color};width:${size}px;height:${size}px;border-radius:50%;border:3px solid white;box-shadow:0 0 8px ${color}99;"></div>`,
+        className: "",
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+      });
+      L.marker(d.position, { icon })
+        .addTo(layer)
+        .bindPopup(
+          `<b>${d.name}</b><br/>Lat: ${d.position[0].toFixed(4)}<br/>Lng: ${d.position[1].toFixed(4)}` +
+          (d.altitude != null ? `<br/>Alt: ${d.altitude}m` : "") +
+          (d.battery != null ? `<br/>Battery: ${d.battery}%` : "")
+        );
+    });
+
+    const focus = drones.find((d) => d.id === focusDroneId);
+    if (focus) {
+      map.setView(focus.position, Math.max(map.getZoom(), 11), { animate: true });
+    } else if (drones.length > 1) {
+      const bounds = L.latLngBounds(drones.map((d) => d.position));
+      map.fitBounds(bounds, { padding: [40, 40] });
+    }
+  }, [drones, focusDroneId]);
 
   return <div ref={mapRef} className={`rounded-lg overflow-hidden border border-border ${className}`} />;
 }
