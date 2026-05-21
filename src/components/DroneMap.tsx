@@ -14,6 +14,14 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+interface DroneMarker {
+  id: string;
+  name: string;
+  position: [number, number];
+  battery?: number;
+  altitude?: number;
+}
+
 interface DroneMapProps {
   className?: string;
   showRoutes?: boolean;
@@ -22,6 +30,8 @@ interface DroneMapProps {
   center?: [number, number];
   zoom?: number;
   region?: "iowa" | "india";
+  drones?: DroneMarker[];
+  focusDroneId?: string;
 }
 
 // India farm safety zones (real coordinates near major agri belts)
