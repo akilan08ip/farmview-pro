@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,11 +9,48 @@ import { PageHeader } from "@/components/PageHeader";
 import { MapPlaceholder } from "@/components/MapPlaceholder";
 import { toast } from "sonner";
 
+const coordSchema = z.object({
+  latitude: z
+    .number({ invalid_type_error: "Latitude is required" })
+    .min(-90, { message: "Latitude must be between -90 and 90" })
+    .max(90, { message: "Latitude must be between -90 and 90" }),
+  longitude: z
+    .number({ invalid_type_error: "Longitude is required" })
+    .min(-180, { message: "Longitude must be between -180 and 180" })
+    .max(180, { message: "Longitude must be between -180 and 180" }),
+  altitude: z
+    .number({ invalid_type_error: "Altitude is required" })
+    .min(0, { message: "Altitude cannot be negative" })
+    .max(500, { message: "Altitude must be 500m or less (regulatory limit)" }),
+});
+
+type CoordErrors = Partial<Record<"latitude" | "longitude" | "altitude", string>>;
+
 export default function MissionPlanningPage() {
   const [missionType, setMissionType] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [altitude, setAltitude] = useState("");
+  const [errors, setErrors] = useState<CoordErrors>({});
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    const parsed = coordSchema.safeParse({
+      latitude: latitude === "" ? NaN : Number(latitude),
+      longitude: longitude === "" ? NaN : Number(longitude),
+      altitude: altitude === "" ? NaN : Number(altitude),
+    });
+    if (!parsed.success) {
+      const next: CoordErrors = {};
+      for (const issue of parsed.error.issues) {
+        const key = issue.path[0] as keyof CoordErrors;
+        if (!next[key]) next[key] = issue.message;
+      }
+      setErrors(next);
+      toast.error("Please fix the highlighted coordinate errors.");
+      return;
+    }
+    setErrors({});
     toast.success("Mission saved successfully!");
   };
 
@@ -80,15 +118,42 @@ export default function MissionPlanningPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Latitude</label>
-                  <Input type="number" step="0.0001" placeholder="e.g. 31.1471" />
+                  <Input
+                    type="number"
+                    step="0.0001"
+                    placeholder="e.g. 31.1471"
+                    value={latitude}
+                    onChange={(e) => setLatitude(e.target.value)}
+                    aria-invalid={!!errors.latitude}
+                    className={errors.latitude ? "border-destructive focus-visible:ring-destructive" : ""}
+                  />
+                  {errors.latitude && <p className="text-xs text-destructive mt-1">{errors.latitude}</p>}
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Longitude</label>
-                  <Input type="number" step="0.0001" placeholder="e.g. 75.3412" />
+                  <Input
+                    type="number"
+                    step="0.0001"
+                    placeholder="e.g. 75.3412"
+                    value={longitude}
+                    onChange={(e) => setLongitude(e.target.value)}
+                    aria-invalid={!!errors.longitude}
+                    className={errors.longitude ? "border-destructive focus-visible:ring-destructive" : ""}
+                  />
+                  {errors.longitude && <p className="text-xs text-destructive mt-1">{errors.longitude}</p>}
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Altitude (m)</label>
-                  <Input type="number" step="1" placeholder="e.g. 45" />
+                  <Input
+                    type="number"
+                    step="1"
+                    placeholder="e.g. 45"
+                    value={altitude}
+                    onChange={(e) => setAltitude(e.target.value)}
+                    aria-invalid={!!errors.altitude}
+                    className={errors.altitude ? "border-destructive focus-visible:ring-destructive" : ""}
+                  />
+                  {errors.altitude && <p className="text-xs text-destructive mt-1">{errors.altitude}</p>}
                 </div>
               </div>
               <div>

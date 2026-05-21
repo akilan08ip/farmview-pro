@@ -32,6 +32,25 @@ interface DroneMapProps {
   region?: "iowa" | "india";
   drones?: DroneMarker[];
   focusDroneId?: string;
+  onDroneClick?: (id: string) => void;
+}
+
+// Offset markers that share (almost) the same coordinate so they don't overlap visually
+function dedupePositions(list: DroneMarker[]): DroneMarker[] {
+  const seen = new Map<string, number>();
+  return list.map((d) => {
+    const key = `${d.position[0].toFixed(4)},${d.position[1].toFixed(4)}`;
+    const n = seen.get(key) ?? 0;
+    seen.set(key, n + 1);
+    if (n === 0) return d;
+    // ~10m per 0.0001 degree — spread overlapping drones in a small ring
+    const angle = (n * 2 * Math.PI) / 6;
+    const r = 0.0005 * Math.ceil(n / 6);
+    return {
+      ...d,
+      position: [d.position[0] + Math.cos(angle) * r, d.position[1] + Math.sin(angle) * r],
+    };
+  });
 }
 
 // India farm safety zones (real coordinates near major agri belts)
@@ -150,6 +169,7 @@ function DroneMapImpl({
   region = "iowa",
   drones,
   focusDroneId,
+  onDroneClick,
 }: DroneMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -251,33 +271,31 @@ function DroneMapImpl({
     if (!map || !layer || !drones) return;
 
     layer.clearLayers();
-    drones.forEach((d) => {
+    const safeDrones = dedupePositions(drones);
+    safeDrones.forEach((d) => {
       const isFocus = d.id === focusDroneId;
       const color = isFocus ? "#16a34a" : "#64748b";
-      const size = isFocus ? 18 : 12;
+      const size = isFocus ? 20 : 14;
       const icon = L.divIcon({
-        html: `<div style="background:${color};width:${size}px;height:${size}px;border-radius:50%;border:3px solid white;box-shadow:0 0 8px ${color}99;"></div>`,
+        html: `<div style="background:${color};width:${size}px;height:${size}px;border-radius:50%;border:3px solid white;box-shadow:0 0 10px ${color}99;cursor:pointer;"></div>`,
         className: "",
         iconSize: [size, size],
         iconAnchor: [size / 2, size / 2],
       });
-      L.marker(d.position, { icon })
+      const marker = L.marker(d.position, { icon })
         .addTo(layer)
-        .bindPopup(
-          `<b>${d.name}</b><br/>Lat: ${d.position[0].toFixed(4)}<br/>Lng: ${d.position[1].toFixed(4)}` +
-          (d.altitude != null ? `<br/>Alt: ${d.altitude}m` : "") +
-          (d.battery != null ? `<br/>Battery: ${d.battery}%` : "")
-        );
+        .bindTooltip(d.name, { direction: "top", offset: [0, -8] });
+      marker.on("click", () => onDroneClick?.(d.id));
     });
 
-    const focus = drones.find((d) => d.id === focusDroneId);
+    const focus = safeDrones.find((d) => d.id === focusDroneId);
     if (focus) {
       map.setView(focus.position, Math.max(map.getZoom(), 11), { animate: true });
-    } else if (drones.length > 1) {
-      const bounds = L.latLngBounds(drones.map((d) => d.position));
+    } else if (safeDrones.length > 1) {
+      const bounds = L.latLngBounds(safeDrones.map((d) => d.position));
       map.fitBounds(bounds, { padding: [40, 40] });
     }
-  }, [drones, focusDroneId]);
+  }, [drones, focusDroneId, onDroneClick]);
 
   return <div ref={mapRef} className={`rounded-lg overflow-hidden border border-border ${className}`} />;
 }
