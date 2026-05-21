@@ -118,15 +118,42 @@ export default function MissionPlanningPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Latitude</label>
-                  <Input type="number" step="0.0001" placeholder="e.g. 31.1471" />
+                  <Input
+                    type="number"
+                    step="0.0001"
+                    placeholder="e.g. 31.1471"
+                    value={latitude}
+                    onChange={(e) => setLatitude(e.target.value)}
+                    aria-invalid={!!errors.latitude}
+                    className={errors.latitude ? "border-destructive focus-visible:ring-destructive" : ""}
+                  />
+                  {errors.latitude && <p className="text-xs text-destructive mt-1">{errors.latitude}</p>}
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Longitude</label>
-                  <Input type="number" step="0.0001" placeholder="e.g. 75.3412" />
+                  <Input
+                    type="number"
+                    step="0.0001"
+                    placeholder="e.g. 75.3412"
+                    value={longitude}
+                    onChange={(e) => setLongitude(e.target.value)}
+                    aria-invalid={!!errors.longitude}
+                    className={errors.longitude ? "border-destructive focus-visible:ring-destructive" : ""}
+                  />
+                  {errors.longitude && <p className="text-xs text-destructive mt-1">{errors.longitude}</p>}
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Altitude (m)</label>
-                  <Input type="number" step="1" placeholder="e.g. 45" />
+                  <Input
+                    type="number"
+                    step="1"
+                    placeholder="e.g. 45"
+                    value={altitude}
+                    onChange={(e) => setAltitude(e.target.value)}
+                    aria-invalid={!!errors.altitude}
+                    className={errors.altitude ? "border-destructive focus-visible:ring-destructive" : ""}
+                  />
+                  {errors.altitude && <p className="text-xs text-destructive mt-1">{errors.altitude}</p>}
                 </div>
               </div>
               <div>
