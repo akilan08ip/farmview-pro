@@ -169,6 +169,7 @@ function DroneMapImpl({
   region = "iowa",
   drones,
   focusDroneId,
+  onDroneClick,
 }: DroneMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
