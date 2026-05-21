@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,11 +9,48 @@ import { PageHeader } from "@/components/PageHeader";
 import { MapPlaceholder } from "@/components/MapPlaceholder";
 import { toast } from "sonner";
 
+const coordSchema = z.object({
+  latitude: z
+    .number({ invalid_type_error: "Latitude is required" })
+    .min(-90, { message: "Latitude must be between -90 and 90" })
+    .max(90, { message: "Latitude must be between -90 and 90" }),
+  longitude: z
+    .number({ invalid_type_error: "Longitude is required" })
+    .min(-180, { message: "Longitude must be between -180 and 180" })
+    .max(180, { message: "Longitude must be between -180 and 180" }),
+  altitude: z
+    .number({ invalid_type_error: "Altitude is required" })
+    .min(0, { message: "Altitude cannot be negative" })
+    .max(500, { message: "Altitude must be 500m or less (regulatory limit)" }),
+});
+
+type CoordErrors = Partial<Record<"latitude" | "longitude" | "altitude", string>>;
+
 export default function MissionPlanningPage() {
   const [missionType, setMissionType] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [altitude, setAltitude] = useState("");
+  const [errors, setErrors] = useState<CoordErrors>({});
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    const parsed = coordSchema.safeParse({
+      latitude: latitude === "" ? NaN : Number(latitude),
+      longitude: longitude === "" ? NaN : Number(longitude),
+      altitude: altitude === "" ? NaN : Number(altitude),
+    });
+    if (!parsed.success) {
+      const next: CoordErrors = {};
+      for (const issue of parsed.error.issues) {
+        const key = issue.path[0] as keyof CoordErrors;
+        if (!next[key]) next[key] = issue.message;
+      }
+      setErrors(next);
+      toast.error("Please fix the highlighted coordinate errors.");
+      return;
+    }
+    setErrors({});
     toast.success("Mission saved successfully!");
   };
 
