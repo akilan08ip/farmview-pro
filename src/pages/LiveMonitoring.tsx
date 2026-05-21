@@ -84,7 +84,15 @@ export default function LiveMonitoringPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
-          <DroneMap className="h-72 sm:h-96" showRoutes showSafetyZones showDrone />
+          <DroneMap
+            className="h-72 sm:h-96"
+            region="india"
+            showRoutes={false}
+            showSafetyZones
+            showDrone={false}
+            drones={drones.map((d) => ({ id: d.id, name: d.name, position: d.position, battery: d.battery, altitude: d.altitude }))}
+            focusDroneId={selectedDroneId}
+          />
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <TelemetryCard label="Battery" value={t.battery} unit="%" icon={Battery} status={batteryStatus} />
