@@ -270,33 +270,31 @@ function DroneMapImpl({
     if (!map || !layer || !drones) return;
 
     layer.clearLayers();
-    drones.forEach((d) => {
+    const safeDrones = dedupePositions(drones);
+    safeDrones.forEach((d) => {
       const isFocus = d.id === focusDroneId;
       const color = isFocus ? "#16a34a" : "#64748b";
-      const size = isFocus ? 18 : 12;
+      const size = isFocus ? 20 : 14;
       const icon = L.divIcon({
-        html: `<div style="background:${color};width:${size}px;height:${size}px;border-radius:50%;border:3px solid white;box-shadow:0 0 8px ${color}99;"></div>`,
+        html: `<div style="background:${color};width:${size}px;height:${size}px;border-radius:50%;border:3px solid white;box-shadow:0 0 10px ${color}99;cursor:pointer;"></div>`,
         className: "",
         iconSize: [size, size],
         iconAnchor: [size / 2, size / 2],
       });
-      L.marker(d.position, { icon })
+      const marker = L.marker(d.position, { icon })
         .addTo(layer)
-        .bindPopup(
-          `<b>${d.name}</b><br/>Lat: ${d.position[0].toFixed(4)}<br/>Lng: ${d.position[1].toFixed(4)}` +
-          (d.altitude != null ? `<br/>Alt: ${d.altitude}m` : "") +
-          (d.battery != null ? `<br/>Battery: ${d.battery}%` : "")
-        );
+        .bindTooltip(d.name, { direction: "top", offset: [0, -8] });
+      marker.on("click", () => onDroneClick?.(d.id));
     });
 
-    const focus = drones.find((d) => d.id === focusDroneId);
+    const focus = safeDrones.find((d) => d.id === focusDroneId);
     if (focus) {
       map.setView(focus.position, Math.max(map.getZoom(), 11), { animate: true });
-    } else if (drones.length > 1) {
-      const bounds = L.latLngBounds(drones.map((d) => d.position));
+    } else if (safeDrones.length > 1) {
+      const bounds = L.latLngBounds(safeDrones.map((d) => d.position));
       map.fitBounds(bounds, { padding: [40, 40] });
     }
-  }, [drones, focusDroneId]);
+  }, [drones, focusDroneId, onDroneClick]);
 
   return <div ref={mapRef} className={`rounded-lg overflow-hidden border border-border ${className}`} />;
 }
