@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/components/PageHeader";
-import { MapPlaceholder } from "@/components/MapPlaceholder";
+import { CoordinatePreviewMap } from "@/components/CoordinatePreviewMap";
 import { toast } from "sonner";
 
 const coordSchema = z.object({
