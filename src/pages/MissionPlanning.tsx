@@ -168,11 +168,11 @@ export default function MissionPlanningPage() {
         <div>
           <Card className="card-shadow">
             <CardHeader>
-              <CardTitle className="text-base font-heading">Route Planning</CardTitle>
+              <CardTitle className="text-base font-heading">Coordinate Preview</CardTitle>
             </CardHeader>
             <CardContent>
-              <MapPlaceholder className="h-80" />
-              <p className="text-xs text-muted-foreground mt-3">Draw the flight path on the map. Connect a mapping service to enable route planning.</p>
+              <CoordinatePreviewMap latitude={latitude} longitude={longitude} className="h-80" />
+              <p className="text-xs text-muted-foreground mt-3">Live preview updates as you type latitude and longitude.</p>
             </CardContent>
           </Card>
         </div>
