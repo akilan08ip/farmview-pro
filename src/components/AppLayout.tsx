@@ -1,7 +1,7 @@
 import { useState, createContext, useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Plane, Radio, Shield, ClipboardList, BarChart3, Settings, ChevronLeft, ChevronRight, Sprout, LogOut, Menu, X, CalendarClock
+  LayoutDashboard, Plane, Radio, Shield, ClipboardList, BarChart3, Settings, ChevronLeft, ChevronRight, Sprout, LogOut, Menu, X, CalendarClock, Users
 } from "lucide-react";
 
 const navItems = [
@@ -12,6 +12,7 @@ const navItems = [
   { title: "Bookings", path: "/bookings", icon: CalendarClock },
   { title: "Mission Logs", path: "/logs", icon: ClipboardList },
   { title: "Reports", path: "/reports", icon: BarChart3 },
+  { title: "Role Access", path: "/roles", icon: Users },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 
