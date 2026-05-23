@@ -13,6 +13,7 @@ import MissionLogsPage from "./pages/MissionLogs";
 import ReportsPage from "./pages/Reports";
 import BookingsPage from "./pages/Bookings";
 import SettingsPage from "./pages/Settings";
+import RoleAccessPage from "./pages/RoleAccess";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/reports" element={<DashboardLayout><ReportsPage /></DashboardLayout>} />
           <Route path="/bookings" element={<DashboardLayout><BookingsPage /></DashboardLayout>} />
           <Route path="/settings" element={<DashboardLayout><SettingsPage /></DashboardLayout>} />
+          <Route path="/roles" element={<DashboardLayout><RoleAccessPage /></DashboardLayout>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
