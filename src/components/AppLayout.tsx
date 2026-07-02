@@ -38,7 +38,30 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const [role, setRole] = useRole();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleSignOut = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await supabase.auth.signOut({ scope: "global" });
+    } catch (err: any) {
+      // Continue with local cleanup even if remote signOut fails
+      console.warn("signOut error", err);
+    }
+    try {
+      // Clear any lingering supabase auth tokens + app state
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("sb-") || k === "farmdrone.role")
+        .forEach((k) => localStorage.removeItem(k));
+      sessionStorage.clear();
+    } catch {}
+    toast.success("Signed out");
+    navigate("/", { replace: true });
+  };
 
   const visibleItems = navItems.filter((i) => i.access[role] !== "none");
   const RoleIcon = roleMeta[role].icon;
