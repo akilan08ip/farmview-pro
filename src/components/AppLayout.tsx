@@ -160,6 +160,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                       </DropdownMenuItem>
                     );
                   })}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} disabled={signingOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    {signingOut ? "Signing out…" : "Sign Out"}
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
