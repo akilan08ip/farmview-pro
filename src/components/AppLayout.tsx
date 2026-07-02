@@ -1,5 +1,7 @@
 import { useState, createContext, useContext } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import {
   LayoutDashboard, Plane, Radio, Shield, ClipboardList, BarChart3, Settings, ChevronLeft, ChevronRight, Sprout, LogOut, Menu, CalendarClock, Users, UserCog, Eye
 } from "lucide-react";
@@ -36,7 +38,30 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const [role, setRole] = useRole();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleSignOut = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await supabase.auth.signOut({ scope: "global" });
+    } catch (err: any) {
+      // Continue with local cleanup even if remote signOut fails
+      console.warn("signOut error", err);
+    }
+    try {
+      // Clear any lingering supabase auth tokens + app state
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("sb-") || k === "farmdrone.role")
+        .forEach((k) => localStorage.removeItem(k));
+      sessionStorage.clear();
+    } catch {}
+    toast.success("Signed out");
+    navigate("/", { replace: true });
+  };
 
   const visibleItems = navItems.filter((i) => i.access[role] !== "none");
   const RoleIcon = roleMeta[role].icon;
@@ -98,13 +123,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="border-t border-sidebar-border p-2">
-            <Link
-              to="/"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent/60 transition-colors"
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent/60 transition-colors disabled:opacity-60"
             >
               <LogOut className="h-5 w-5 shrink-0" />
-              {!collapsed && <span>Sign Out</span>}
-            </Link>
+              {!collapsed && <span>{signingOut ? "Signing out…" : "Sign Out"}</span>}
+            </button>
           </div>
         </aside>
 
@@ -133,6 +160,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                       </DropdownMenuItem>
                     );
                   })}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} disabled={signingOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    {signingOut ? "Signing out…" : "Sign Out"}
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
