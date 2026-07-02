@@ -1,5 +1,7 @@
 import { useState, createContext, useContext } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import {
   LayoutDashboard, Plane, Radio, Shield, ClipboardList, BarChart3, Settings, ChevronLeft, ChevronRight, Sprout, LogOut, Menu, CalendarClock, Users, UserCog, Eye
 } from "lucide-react";
