@@ -123,13 +123,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="border-t border-sidebar-border p-2">
-            <Link
-              to="/"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent/60 transition-colors"
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent/60 transition-colors disabled:opacity-60"
             >
               <LogOut className="h-5 w-5 shrink-0" />
-              {!collapsed && <span>Sign Out</span>}
-            </Link>
+              {!collapsed && <span>{signingOut ? "Signing out…" : "Sign Out"}</span>}
+            </button>
           </div>
         </aside>
 
