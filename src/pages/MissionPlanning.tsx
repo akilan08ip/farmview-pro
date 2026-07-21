@@ -259,7 +259,12 @@ export default function MissionPlanningPage() {
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Notes</label>
-                <Textarea placeholder="Additional notes..." rows={3} />
+                <Textarea
+                  placeholder="Additional notes..."
+                  rows={3}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
               </div>
               <Button type="submit" className="w-full">Save Mission</Button>
             </form>
