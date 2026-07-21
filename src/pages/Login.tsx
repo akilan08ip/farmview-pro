@@ -32,13 +32,18 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: `${window.location.origin}/dashboard` },
         });
         if (error) throw error;
-        toast.success("Account created. Check your email to confirm.");
+        if (data.session) {
+          toast.success("Account created!");
+          navigate("/dashboard");
+        } else {
+          toast.success("Account created. Check your email to confirm.");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
