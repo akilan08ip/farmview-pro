@@ -26,15 +26,42 @@ const coordSchema = z.object({
 
 type CoordErrors = Partial<Record<"latitude" | "longitude" | "altitude", string>>;
 
+type Status = "Planned" | "Active";
+
+const STORAGE_KEY = "farmdrone.missions";
+
 export default function MissionPlanningPage() {
+  const [name, setName] = useState("");
+  const [droneId, setDroneId] = useState("");
+  const [operator, setOperator] = useState("");
+  const [field, setField] = useState("");
   const [missionType, setMissionType] = useState("");
+  const [plannedStart, setPlannedStart] = useState("");
+  const [plannedEnd, setPlannedEnd] = useState("");
+  const [status, setStatus] = useState<Status>("Planned");
+  const [duration, setDuration] = useState("");
+  const [sprayArea, setSprayArea] = useState("");
+  const [notes, setNotes] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [altitude, setAltitude] = useState("");
   const [errors, setErrors] = useState<CoordErrors>({});
 
+  const droneMap: Record<string, string> = {
+    "DRN-01": "AgriHawk Alpha",
+    "DRN-02": "SkyMapper Pro",
+    "DRN-03": "CropWatch Mini",
+  };
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name.trim()) { toast.error("Mission name is required."); return; }
+    if (!droneId) { toast.error("Please select a drone."); return; }
+    if (!plannedStart) { toast.error("Planned start time is required."); return; }
+    if (plannedEnd && new Date(plannedEnd) <= new Date(plannedStart)) {
+      toast.error("End time must be after start time.");
+      return;
+    }
     const parsed = coordSchema.safeParse({
       latitude: latitude === "" ? NaN : Number(latitude),
       longitude: longitude === "" ? NaN : Number(longitude),
@@ -51,7 +78,33 @@ export default function MissionPlanningPage() {
       return;
     }
     setErrors({});
-    toast.success("Mission saved successfully!");
+    const mission = {
+      id: `M-${Date.now()}`,
+      name,
+      droneId,
+      droneName: droneMap[droneId] ?? droneId,
+      operator,
+      field,
+      type: missionType,
+      status,
+      plannedStart,
+      plannedEnd,
+      duration,
+      sprayArea,
+      notes,
+      latitude: parsed.data.latitude,
+      longitude: parsed.data.longitude,
+      altitude: parsed.data.altitude,
+      createdAt: new Date().toISOString(),
+    };
+    try {
+      const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([mission, ...existing]));
+    } catch { /* ignore */ }
+    toast.success(`Mission "${name}" saved as ${status}.`);
+    setName(""); setDroneId(""); setOperator(""); setField(""); setMissionType("");
+    setPlannedStart(""); setPlannedEnd(""); setStatus("Planned"); setDuration("");
+    setSprayArea(""); setNotes(""); setLatitude(""); setLongitude(""); setAltitude("");
   };
 
   return (
@@ -67,12 +120,17 @@ export default function MissionPlanningPage() {
             <form onSubmit={handleSave} className="space-y-4">
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Mission Name</label>
-                <Input placeholder="e.g. North Field Morning Spray" />
+                <Input
+                  placeholder="e.g. North Field Morning Spray"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Drone</label>
-                  <Select>
+                  <Select value={droneId} onValueChange={setDroneId}>
                     <SelectTrigger><SelectValue placeholder="Select drone" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="DRN-01">AgriHawk Alpha</SelectItem>
@@ -83,37 +141,80 @@ export default function MissionPlanningPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Operator</label>
-                  <Input placeholder="Operator name" />
+                  <Input
+                    placeholder="Operator name"
+                    value={operator}
+                    onChange={(e) => setOperator(e.target.value)}
+                  />
                 </div>
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Field Name</label>
-                <Input placeholder="e.g. North Wheat Field" />
+                <Input
+                  placeholder="e.g. North Wheat Field"
+                  value={field}
+                  onChange={(e) => setField(e.target.value)}
+                />
               </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">Mission Type</label>
-                <Select value={missionType} onValueChange={setMissionType}>
-                  <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="spraying">Spraying</SelectItem>
-                    <SelectItem value="mapping">Mapping</SelectItem>
-                    <SelectItem value="monitoring">Monitoring</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Mission Type</label>
+                  <Select value={missionType} onValueChange={setMissionType}>
+                    <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="spraying">Spraying</SelectItem>
+                      <SelectItem value="mapping">Mapping</SelectItem>
+                      <SelectItem value="monitoring">Monitoring</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Initial Status</label>
+                  <Select value={status} onValueChange={(v) => setStatus(v as Status)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Planned">Planned</SelectItem>
+                      <SelectItem value="Active">Active</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Planned Start</label>
-                  <Input type="datetime-local" />
+                  <Input
+                    type="datetime-local"
+                    value={plannedStart}
+                    onChange={(e) => setPlannedStart(e.target.value)}
+                    required
+                  />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1.5 block">Expected Duration</label>
-                  <Input placeholder="e.g. 45 min" />
+                  <label className="text-sm font-medium mb-1.5 block">Planned End</label>
+                  <Input
+                    type="datetime-local"
+                    value={plannedEnd}
+                    onChange={(e) => setPlannedEnd(e.target.value)}
+                  />
                 </div>
               </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">Planned Spray Area</label>
-                <Input placeholder="e.g. 12 hectares" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Expected Duration</label>
+                  <Input
+                    placeholder="e.g. 45 min"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Planned Spray Area</label>
+                  <Input
+                    placeholder="e.g. 12 hectares"
+                    value={sprayArea}
+                    onChange={(e) => setSprayArea(e.target.value)}
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
@@ -158,7 +259,12 @@ export default function MissionPlanningPage() {
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Notes</label>
-                <Textarea placeholder="Additional notes..." rows={3} />
+                <Textarea
+                  placeholder="Additional notes..."
+                  rows={3}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
               </div>
               <Button type="submit" className="w-full">Save Mission</Button>
             </form>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sprout, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,18 +17,33 @@ export default function LoginPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (session) navigate("/dashboard", { replace: true });
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) navigate("/dashboard", { replace: true });
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [navigate]);
+
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: `${window.location.origin}/dashboard` },
         });
         if (error) throw error;
-        toast.success("Account created. Check your email to confirm.");
+        if (data.session) {
+          toast.success("Account created!");
+          navigate("/dashboard");
+        } else {
+          toast.success("Account created. Check your email to confirm.");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -45,10 +60,10 @@ export default function LoginPage() {
     setGoogleLoading(true);
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/dashboard`,
+        redirect_uri: window.location.origin,
       });
       if (result.error) {
-        toast.error("Google sign-in failed");
+        toast.error(result.error.message ?? "Google sign-in failed");
         setGoogleLoading(false);
         return;
       }
