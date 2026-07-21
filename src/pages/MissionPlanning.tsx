@@ -120,12 +120,17 @@ export default function MissionPlanningPage() {
             <form onSubmit={handleSave} className="space-y-4">
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Mission Name</label>
-                <Input placeholder="e.g. North Field Morning Spray" />
+                <Input
+                  placeholder="e.g. North Field Morning Spray"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Drone</label>
-                  <Select>
+                  <Select value={droneId} onValueChange={setDroneId}>
                     <SelectTrigger><SelectValue placeholder="Select drone" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="DRN-01">AgriHawk Alpha</SelectItem>
@@ -136,37 +141,80 @@ export default function MissionPlanningPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Operator</label>
-                  <Input placeholder="Operator name" />
+                  <Input
+                    placeholder="Operator name"
+                    value={operator}
+                    onChange={(e) => setOperator(e.target.value)}
+                  />
                 </div>
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Field Name</label>
-                <Input placeholder="e.g. North Wheat Field" />
+                <Input
+                  placeholder="e.g. North Wheat Field"
+                  value={field}
+                  onChange={(e) => setField(e.target.value)}
+                />
               </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">Mission Type</label>
-                <Select value={missionType} onValueChange={setMissionType}>
-                  <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="spraying">Spraying</SelectItem>
-                    <SelectItem value="mapping">Mapping</SelectItem>
-                    <SelectItem value="monitoring">Monitoring</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Mission Type</label>
+                  <Select value={missionType} onValueChange={setMissionType}>
+                    <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="spraying">Spraying</SelectItem>
+                      <SelectItem value="mapping">Mapping</SelectItem>
+                      <SelectItem value="monitoring">Monitoring</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Initial Status</label>
+                  <Select value={status} onValueChange={(v) => setStatus(v as Status)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Planned">Planned</SelectItem>
+                      <SelectItem value="Active">Active</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Planned Start</label>
-                  <Input type="datetime-local" />
+                  <Input
+                    type="datetime-local"
+                    value={plannedStart}
+                    onChange={(e) => setPlannedStart(e.target.value)}
+                    required
+                  />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1.5 block">Expected Duration</label>
-                  <Input placeholder="e.g. 45 min" />
+                  <label className="text-sm font-medium mb-1.5 block">Planned End</label>
+                  <Input
+                    type="datetime-local"
+                    value={plannedEnd}
+                    onChange={(e) => setPlannedEnd(e.target.value)}
+                  />
                 </div>
               </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">Planned Spray Area</label>
-                <Input placeholder="e.g. 12 hectares" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Expected Duration</label>
+                  <Input
+                    placeholder="e.g. 45 min"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Planned Spray Area</label>
+                  <Input
+                    placeholder="e.g. 12 hectares"
+                    value={sprayArea}
+                    onChange={(e) => setSprayArea(e.target.value)}
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
