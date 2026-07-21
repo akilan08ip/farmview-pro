@@ -26,15 +26,42 @@ const coordSchema = z.object({
 
 type CoordErrors = Partial<Record<"latitude" | "longitude" | "altitude", string>>;
 
+type Status = "Planned" | "Active";
+
+const STORAGE_KEY = "farmdrone.missions";
+
 export default function MissionPlanningPage() {
+  const [name, setName] = useState("");
+  const [droneId, setDroneId] = useState("");
+  const [operator, setOperator] = useState("");
+  const [field, setField] = useState("");
   const [missionType, setMissionType] = useState("");
+  const [plannedStart, setPlannedStart] = useState("");
+  const [plannedEnd, setPlannedEnd] = useState("");
+  const [status, setStatus] = useState<Status>("Planned");
+  const [duration, setDuration] = useState("");
+  const [sprayArea, setSprayArea] = useState("");
+  const [notes, setNotes] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [altitude, setAltitude] = useState("");
   const [errors, setErrors] = useState<CoordErrors>({});
 
+  const droneMap: Record<string, string> = {
+    "DRN-01": "AgriHawk Alpha",
+    "DRN-02": "SkyMapper Pro",
+    "DRN-03": "CropWatch Mini",
+  };
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name.trim()) { toast.error("Mission name is required."); return; }
+    if (!droneId) { toast.error("Please select a drone."); return; }
+    if (!plannedStart) { toast.error("Planned start time is required."); return; }
+    if (plannedEnd && new Date(plannedEnd) <= new Date(plannedStart)) {
+      toast.error("End time must be after start time.");
+      return;
+    }
     const parsed = coordSchema.safeParse({
       latitude: latitude === "" ? NaN : Number(latitude),
       longitude: longitude === "" ? NaN : Number(longitude),
@@ -51,7 +78,33 @@ export default function MissionPlanningPage() {
       return;
     }
     setErrors({});
-    toast.success("Mission saved successfully!");
+    const mission = {
+      id: `M-${Date.now()}`,
+      name,
+      droneId,
+      droneName: droneMap[droneId] ?? droneId,
+      operator,
+      field,
+      type: missionType,
+      status,
+      plannedStart,
+      plannedEnd,
+      duration,
+      sprayArea,
+      notes,
+      latitude: parsed.data.latitude,
+      longitude: parsed.data.longitude,
+      altitude: parsed.data.altitude,
+      createdAt: new Date().toISOString(),
+    };
+    try {
+      const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([mission, ...existing]));
+    } catch { /* ignore */ }
+    toast.success(`Mission "${name}" saved as ${status}.`);
+    setName(""); setDroneId(""); setOperator(""); setField(""); setMissionType("");
+    setPlannedStart(""); setPlannedEnd(""); setStatus("Planned"); setDuration("");
+    setSprayArea(""); setNotes(""); setLatitude(""); setLongitude(""); setAltitude("");
   };
 
   return (
